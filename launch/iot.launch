@@ -1,0 +1,4 @@
+<launch>
+    <node name="ros_demo" pkg="ros_aliyun_iothub" type="ros_demo" output="screen" respawn="true"/>
+    <node name="ros_iot" pkg="ros_aliyun_iothub" type="iothub" output="screen" required="true"/>
+</launch>

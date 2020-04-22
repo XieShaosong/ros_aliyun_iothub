@@ -2,10 +2,19 @@
 #include "ros_aliyun_iothub/status.h"
 #include "ros_aliyun_iothub/control.h"
 
+#include "infra_config.h"
+#include "infra_types.h"
+#include "infra_defs.h"
 #include "infra_compat.h"
+#include "infra_state.h"
+#include "dev_model_api.h"
 #include "dev_sign_api.h"
 #include "mqtt_api.h"
 #include "wrappers.h"
+#include "cJSON.h"
+
+#define IOT_MASTER_DEVID            (0)
+#define IOT_YIELD_TIMEOUT_MS        (200)
 
 using namespace std;
 
@@ -27,9 +36,17 @@ public:
     void handleCommand(const char *cmd);
 public:
     char product_key[IOTX_PRODUCT_KEY_LEN + 1] = "a1KVWijCHZx";
-    char product_secret[IOTX_PRODUCT_SECRET_LEN + 1] = "h4I4dneEFp7EImTv";
-    char device_name[IOTX_DEVICE_NAME_LEN + 1] = "cq_iot_test";
-    char device_secret[IOTX_DEVICE_SECRET_LEN + 1] = "yJ7TTfwROgGCoMd2WMmpOKc9TG92DR7B";
+    char product_secret[IOTX_PRODUCT_SECRET_LEN + 1] = "pED8bstXxmPaLz2s";
+    char device_name[IOTX_DEVICE_NAME_LEN + 1] = "robot_1";
+    char device_secret[IOTX_DEVICE_SECRET_LEN + 1] = "din3Q16zbzPUwASlUrDD3dVYpk1gDMOJ";
+
+    typedef struct
+    {
+        int master_devid;
+        int cloud_connected;
+        int master_initialized;
+    } iot_ctx_t;
+    static iot_ctx_t g_user_iot_ctx;
 
     void *pclient = NULL;
     iotx_mqtt_param_t mqtt_params;
@@ -40,5 +57,23 @@ public:
     static void iot_event_handle(void *pcontext, void *pclient, iotx_mqtt_event_msg_pt msg);
     static int iot_everything_state_handle(const int state_code, const char *state_message);
     static int iot_identity_response_handle(const char *payload);
+    int32_t iot_post_event_warn(uint32_t devid, const char *value);
+    int32_t iot_post_event_error(uint32_t devid, const char *value);
+    int32_t iot_post_property_status(uint32_t devid, ros_aliyun_iothub::status status);
+    int32_t iot_parse_property(const char *request, int request_len);
+    static int iot_connected_event_handler(void);
+    static int iot_disconnected_event_handler(void);
+    static int iot_initialized(const int devid);
+    static int iot_report_reply_event_handler(const int devid, const int msgid, const int code, const char *reply, const int reply_len);
+    static int iot_trigger_event_reply_event_handler(const int devid, const int msgid, const int code, const char *eventid,
+                                                     const int eventid_len, const char *message, const int message_len);
+    static int iot_property_set_event_handler(const int devid, const char *request, const int request_len);
+    static int iot_service_request_event_handler(const int devid, const char *serviceid, const int serviceid_len, const char *request,
+                                                 const int request_len, char **response, int *response_len);
+    static int iot_timestamp_reply_event_handler(const char *timestamp);
+    static int iot_fota_event_handler(int type, const char *version);
+    static int iot_cloud_error_handler(const int code, const char *data, const char *detail);
+    static int iot_dynreg_device_secret(const char *device_secret);
+    static int iot_sdk_state_dump(int ev, const char *msg);
 };
 }

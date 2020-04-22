@@ -33,14 +33,15 @@ catkin_package(
 )
 
 # Add the headers from roscpp
-include_directories(include iot_core/include ${roscpp_INCLUDE_DIRS})
+include_directories(include include/iot_util iot_core/include ${roscpp_INCLUDE_DIRS})
 
+link_libraries(${CMAKE_SOURCE_DIR}/iot_core/lib/libcurl.a)
 link_libraries(${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_hal.a)
 link_libraries(${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_sdk.a)
 link_libraries(${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_tls.a)
 
-add_executable(iothub src/main.cpp src/ros_iot.cpp)
-target_link_libraries(iothub ${catkin_LIBRARIES} ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_sdk.a ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_hal.a ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_tls.a)
+add_executable(iothub src/iot_util/cJSON.c src/main.cpp src/ros_iot.cpp)
+target_link_libraries(iothub ${catkin_LIBRARIES} ${CMAKE_SOURCE_DIR}/iot_core/lib/libcurl.a ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_sdk.a ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_hal.a ${CMAKE_SOURCE_DIR}/iot_core/lib/libiot_tls.a)
 add_dependencies(iothub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(ros_demo src/ros_demo/ros_demo.cpp)

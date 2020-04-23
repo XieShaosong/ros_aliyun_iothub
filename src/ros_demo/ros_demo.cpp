@@ -20,7 +20,7 @@ void Demo::intervalCallback(const ros::TimerEvent &)
 
 bool Demo::commandCallback(ros_aliyun_iothub::control::Request &req, ros_aliyun_iothub::control::Response &res)
 {
-    ROS_INFO("%s", req.cmd.c_str());
+    ROS_INFO("doing %s", req.cmd.c_str());
     res.result = "success";
     return true;
 }

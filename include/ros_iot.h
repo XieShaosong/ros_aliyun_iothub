@@ -2,6 +2,10 @@
 #include "ros_aliyun_iothub/status.h"
 #include "ros_aliyun_iothub/control.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "infra_config.h"
 #include "infra_types.h"
 #include "infra_defs.h"
@@ -26,17 +30,19 @@ public:
     AliIot();
 
     ros::NodeHandle n;
-    ros::Timer timer;
+    ros::Timer topic_timer, linkkit_timer, timer;
     ros::Subscriber status_sub;
     ros::ServiceClient ctrl_client;
     static string cmd;
+    void intervalTopicCallback(const ros::TimerEvent &);
+    void intervalLinkkitCallback(const ros::TimerEvent &);
     void intervalCallback(const ros::TimerEvent &);
     ros_aliyun_iothub::status demo_status;
     void statusCallback(const ros_aliyun_iothub::status::ConstPtr &msg);
     void handleCommand(const char *cmd);
 public:
-    char product_key[IOTX_PRODUCT_KEY_LEN + 1] = "a1KVWijCHZx";
-    char product_secret[IOTX_PRODUCT_SECRET_LEN + 1] = "pED8bstXxmPaLz2s";
+    char product_key[IOTX_PRODUCT_KEY_LEN + 1] = "a1SRxGfxtwd";
+    char product_secret[IOTX_PRODUCT_SECRET_LEN + 1] = "";
     char device_name[IOTX_DEVICE_NAME_LEN + 1] = "robot_1";
     char device_secret[IOTX_DEVICE_SECRET_LEN + 1] = "din3Q16zbzPUwASlUrDD3dVYpk1gDMOJ";
 
@@ -59,7 +65,7 @@ public:
     static int iot_identity_response_handle(const char *payload);
     int32_t iot_post_event_warn(uint32_t devid, const char *value);
     int32_t iot_post_event_error(uint32_t devid, const char *value);
-    int32_t iot_post_property_status(uint32_t devid, ros_aliyun_iothub::status status);
+    int32_t iot_post_property_status(uint32_t devid, uint32_t value);
     int32_t iot_parse_property(const char *request, int request_len);
     static int iot_connected_event_handler(void);
     static int iot_disconnected_event_handler(void);

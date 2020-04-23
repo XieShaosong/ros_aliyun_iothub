@@ -7,7 +7,9 @@ AliIot::iot_ctx_t AliIot::g_user_iot_ctx;
 AliIot::AliIot()
 {
     iot_init();
-    timer = n.createTimer(ros::Duration(1), &AliIot::intervalCallback, this);
+    topic_timer = n.createTimer(ros::Duration(1), &AliIot::intervalTopicCallback, this);
+    linkkit_timer = n.createTimer(ros::Duration(5), &AliIot::intervalLinkkitCallback, this);
+    timer = n.createTimer(ros::Duration(0.2), &AliIot::intervalCallback, this);
     status_sub = n.subscribe("demo_status", 1, &AliIot::statusCallback, this);
     ctrl_client = n.serviceClient<ros_aliyun_iothub::control>("demo_control");
 }
@@ -26,20 +28,20 @@ void AliIot::iot_init()
     memcpy(master_meta_info.device_name, device_name, strlen(device_name));
     memcpy(master_meta_info.device_secret, device_secret, strlen(device_secret));
 
-    IOT_SetLogLevel(IOT_LOG_DEBUG);
+    IOT_SetLogLevel(IOT_LOG_WARNING);
 
     IOT_Ioctl(IOTX_IOCTL_SET_PRODUCT_KEY, product_key);
     IOT_Ioctl(IOTX_IOCTL_SET_DEVICE_NAME, device_name);
     IOT_Ioctl(IOTX_IOCTL_SET_DEVICE_SECRET, device_secret);
 
-    IOT_RegisterCallback(ITE_IDENTITY_RESPONSE, iot_identity_response_handle);
-    IOT_RegisterCallback(ITE_STATE_EVERYTHING, iot_everything_state_handle);
-    IOT_RegisterCallback(ITE_STATE_EVERYTHING, iot_sdk_state_dump);
+    // IOT_RegisterCallback(ITE_IDENTITY_RESPONSE, iot_identity_response_handle);
+    // IOT_RegisterCallback(ITE_STATE_EVERYTHING, iot_everything_state_handle);
+    // IOT_RegisterCallback(ITE_STATE_EVERYTHING, iot_sdk_state_dump);
     IOT_RegisterCallback(ITE_CONNECT_SUCC, iot_connected_event_handler);
     IOT_RegisterCallback(ITE_DISCONNECTED, iot_disconnected_event_handler);
     IOT_RegisterCallback(ITE_SERVICE_REQUEST, iot_service_request_event_handler);
     IOT_RegisterCallback(ITE_PROPERTY_SET, iot_property_set_event_handler);
-    IOT_RegisterCallback(ITE_REPORT_REPLY, iot_report_reply_event_handler);
+    // IOT_RegisterCallback(ITE_REPORT_REPLY, iot_report_reply_event_handler);
     IOT_RegisterCallback(ITE_TRIGGER_EVENT_REPLY, iot_trigger_event_reply_event_handler);
     IOT_RegisterCallback(ITE_TIMESTAMP_REPLY, iot_timestamp_reply_event_handler);
     IOT_RegisterCallback(ITE_INITIALIZE_COMPLETED, iot_initialized);
@@ -66,7 +68,7 @@ void AliIot::iot_init()
 
     do
     {
-        res = IOT_Linkkit_connect(g_user_iot_ctx.master_devid);
+        res = IOT_Linkkit_Connect(g_user_iot_ctx.master_devid);
         if (res >=0)
         {
             break;
@@ -100,17 +102,17 @@ void AliIot::iot_init()
 void AliIot::iot_message_arrive(void *pcontext, void *pclient, iotx_mqtt_event_msg_pt msg)
 {
     iotx_mqtt_topic_info_t *topic_info = (iotx_mqtt_topic_info_pt)msg->msg;
-    
+
     switch (msg->event_type)
     {
-        case IOTX_MQTT_EVENT_PUBLISH_RECEIVED:
-            ROS_INFO("Message Arrived:");
-            ROS_INFO("Payload: %.*s", topic_info->payload_len, topic_info->payload);
-            cmd = topic_info->payload;
-            break;
+    case IOTX_MQTT_EVENT_PUBLISH_RECEIVED:
+        ROS_INFO("Message Arrived:");
+        ROS_INFO("Payload: %.*s", topic_info->payload_len, topic_info->payload);
+        cmd = topic_info->payload;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
@@ -201,7 +203,7 @@ int32_t AliIot::iot_post_event_warn(uint32_t devid, const char *value)
     {
         return STATE_USER_INPUT_NULL_POINTER;
     }
-
+    
     event_payload_len = strlen("warn_code") + strlen(value) + 10;
     event_payload = HAL_Malloc(event_payload_len);
     if (event_payload == NULL)
@@ -211,14 +213,12 @@ int32_t AliIot::iot_post_event_warn(uint32_t devid, const char *value)
     memset(event_payload, 0, event_payload_len);
 
     HAL_Snprintf(event_payload, event_payload_len, "{\"warn_code\": %s}", value);
-    if (res < 0)
-    {
-        return STATE_SYS_DEPEND_SNPRINTF;
-    }
 
-    res = IOT_Linkkit_TriggerEvent(IOT_MASTER_DEVID, event_id, strlen(event_id),
+
+    res = IOT_Linkkit_TriggerEvent(devid, event_id, strlen(event_id),
                                    event_payload, strlen(event_payload));
     HAL_Free(event_payload);
+
     return res;
 }
 
@@ -244,23 +244,25 @@ int32_t AliIot::iot_post_event_error(uint32_t devid, const char *value)
     memset(event_payload, 0, event_payload_len);
 
     HAL_Snprintf(event_payload, event_payload_len, "{\"error_code\": %s}", value);
-    if (res < 0)
-    {
-        return STATE_SYS_DEPEND_SNPRINTF;
-    }
 
-    res = IOT_Linkkit_TriggerEvent(IOT_MASTER_DEVID, event_id, strlen(event_id),
+    res = IOT_Linkkit_TriggerEvent(devid, event_id, strlen(event_id),
                                    event_payload, strlen(event_payload));
     HAL_Free(event_payload);
     return res;
 }
 
-int32_t AliIot::iot_post_property_status(uint32_t devid, ros_aliyun_iothub::status status)
+int32_t AliIot::iot_post_property_status(uint32_t devid, uint32_t value)
 {
     int32_t res = STATE_USER_INPUT_BASE;
-    string payload = "{\"status\":\"" + status.status + "\",\"target_value\":\"" + to_string(status.target_value) +"\",\"current_value\":\"" + to_string(status.current_value) +"\"}";
+    char property_payload[64] = {0};
 
-    res = IOT_Linkkit_Report(devid, ITM_MSG_POST_PROPERTY, payload.c_str(), strlen(payload.c_str()));
+    res = HAL_Snprintf(property_payload, sizeof(property_payload), "{\"status\": %d}", value);
+    if (res < 0) {
+        return STATE_SYS_DEPEND_SNPRINTF;
+    }
+
+    res = IOT_Linkkit_Report(devid, ITM_MSG_POST_PROPERTY,
+                            (uint8_t *)property_payload, strlen(property_payload));
     return res;
 }
 
@@ -330,31 +332,30 @@ int AliIot::iot_property_set_event_handler(const int devid, const char *request,
 int AliIot::iot_service_request_event_handler(const int devid, const char *serviceid, const int serviceid_len, const char *request,
                                               const int request_len, char **response, int *response_len)
 {
-    char *result = {"success"};
-    cJSON *root = NULL, *cmd = NULL;
+    char *result = "\"success\"";
+    cJSON *root = NULL, *command = NULL;
     const char *response_fmt = "{\"ret\": %s}";
 
     ROS_INFO("Service Request Received, Service ID: %.*s, Payload: %s", serviceid_len, serviceid, request);
 
     root = cJSON_Parse(request);
-    if (root == NULL || !cJSON_IsString(cmd))
+    if (root == NULL ||!cJSON_IsObject(root))
     {
         ROS_INFO("JSON Parse Error");
         return -1;
     }
 
-    if (strlen("Operation_Service") == serviceid_len && memcmp("Operation_Service", serviceid, serviceid_len) == 0)
+    if (strlen("control") == serviceid_len && memcmp("control", serviceid, serviceid_len) == 0)
     {
-        /* Parse NumberA */
-        cmd = cJSON_GetObjectItem(root, "cmd");
-        if (cmd == NULL || !cJSON_IsNumber(cmd))
+        command = cJSON_GetObjectItem(root, "cmd");
+        if (command == NULL || !cJSON_IsString(command))
         {
             cJSON_Delete(root);
             return -1;
         }
-        ROS_INFO("cmd = %s", cmd);
 
-        /* Send Service Response To Cloud */
+        cmd = command->valuestring;
+
         *response_len = strlen(response_fmt) + 10 + strlen(result);
         *response = (char *)HAL_Malloc(*response_len);
         if (*response == NULL)
@@ -409,10 +410,25 @@ int AliIot::iot_sdk_state_dump(int ev, const char *msg)
     return 0;
 }
 
-void AliIot::intervalCallback(const ros::TimerEvent &)
+void AliIot::intervalTopicCallback(const ros::TimerEvent &)
 {
     iot_publish(pclient);
+}
+
+void AliIot::intervalLinkkitCallback(const ros::TimerEvent &)
+{
+    uint32_t state = 1;
+    if (strcmp(demo_status.status.c_str(), "running") == 0)
+        state = 0;
+    uint32_t ret = iot_post_property_status(g_user_iot_ctx.master_devid, state);
+    //uint32_t ret = iot_post_event_warn(g_user_iot_ctx.master_devid, "\"test\"");
+    //uint32_t ret = iot_post_event_error(g_user_iot_ctx.master_devid, "\"test\"");
+}
+
+void AliIot::intervalCallback(const ros::TimerEvent &)
+{
     IOT_MQTT_Yield(pclient, 200);
+    IOT_Linkkit_Yield(200);
 
     if (cmd != "")
     {

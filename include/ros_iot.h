@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <pwd.h>
+
 #include "infra_config.h"
 #include "infra_types.h"
 #include "infra_defs.h"
@@ -14,11 +16,15 @@
 #include "dev_model_api.h"
 #include "dev_sign_api.h"
 #include "mqtt_api.h"
+#include "http2_upload_api.h"
 #include "wrappers.h"
 #include "cJSON.h"
 
-#define IOT_MASTER_DEVID            (0)
-#define IOT_YIELD_TIMEOUT_MS        (200)
+#define IOT_MASTER_DEVID (0)
+#define IOT_YIELD_TIMEOUT_MS (200)
+
+#define HTTP2_ONLINE_SERVER_URL "a1SRxGfxtwd.iot-as-http2.cn-shanghai.aliyuncs.com"
+#define HTTP2_ONLINE_SERVER_PORT 443
 
 using namespace std;
 
@@ -81,5 +87,11 @@ public:
     static int iot_cloud_error_handler(const int code, const char *data, const char *detail);
     static int iot_dynreg_device_secret(const char *device_secret);
     static int iot_sdk_state_dump(int ev, const char *msg);
+    
+    static int upload_end;
+    static char g_upload_id[50];
+    void iot_upload_file_result(const char *file_path, int result, void *user_data);
+    void iot_upload_id_received_handle(const char *file_path, const char *upload_id, void *user_data);
+    int iot_uploadfile();
 };
 }

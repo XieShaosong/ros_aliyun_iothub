@@ -237,6 +237,127 @@ uint32_t HAL_Random(uint32_t region);
 
 /**
  *
+ * 函数 HAL_SemaphoreCreate() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_SemaphoreCreate() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_SemaphoreCreate(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_SemaphoreCreate, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_OS_linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+/**
+ * @brief   create a semaphore
+ *
+ * @return semaphore handle.
+ * @see None.
+ * @note The recommended value of maximum count of the semaphore is 255.
+ */
+void *HAL_SemaphoreCreate(void);
+
+
+/**
+ *
+ * 函数 HAL_SemaphoreDestroy() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_SemaphoreDestroy() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_SemaphoreDestroy(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_SemaphoreDestroy, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_OS_linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+/**
+ * @brief   destory a semaphore
+ *
+ * @param[in] sem @n the specified sem.
+ * @return None.
+ * @see None.
+ * @note None.
+ */
+void HAL_SemaphoreDestroy(void *sem);
+
+
+/**
+ *
+ * 函数 HAL_SemaphorePost() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_SemaphorePost() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_SemaphorePost(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_SemaphorePost, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_OS_linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+/**
+ * @brief   signal thread wait on a semaphore
+ *
+ * @param[in] sem @n the specified semaphore.
+ * @return None.
+ * @see None.
+ * @note None.
+ */
+void HAL_SemaphorePost(void *sem);
+
+
+/**
+ *
+ * 函数 HAL_SemaphoreWait() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_SemaphoreWait() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_SemaphoreWait(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_SemaphoreWait, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_OS_linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+/**
+ * @brief   wait on a semaphore
+ *
+ * @param[in] sem @n the specified semaphore.
+ * @param[in] timeout_ms @n timeout interval in millisecond.
+     If timeout_ms is PLATFORM_WAIT_INFINITE, the function will return only when the semaphore is signaled.
+ * @return
+   @verbatim
+   =  0: The state of the specified object is signaled.
+   =  -1: The time-out interval elapsed, and the object's state is nonsignaled.
+   @endverbatim
+ * @see None.
+ * @note None.
+ */
+int HAL_SemaphoreWait(void *sem, uint32_t timeout_ms);
+
+
+/**
+ *
  * 函数 HAL_SleepMs() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
  * ---
  * Interface of HAL_SleepMs() requires to be implemented by user of SDK, according to target device platform
@@ -403,6 +524,49 @@ int HAL_SSL_Read(uintptr_t handle, char *buf, int len, int timeout_ms);
  * 
  */
 int HAL_SSL_Write(uintptr_t handle, const char *buf, int len, int timeout_ms);
+
+
+/**
+ *
+ * 函数 HAL_ThreadCreate() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_ThreadCreate() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_ThreadCreate(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_ThreadCreate, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_AWSS_linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+/**
+ * @brief  create a thread
+ *
+ * @param[out] thread_handle @n The new thread handle, memory allocated before thread created and return it, free it after thread joined or exit.
+ * @param[in] start_routine @n A pointer to the application-defined function to be executed by the thread.
+        This pointer represents the starting address of the thread.
+ * @param[in] arg @n A pointer to a variable to be passed to the start_routine.
+ * @param[in] hal_os_thread_param @n A pointer to stack params.
+ * @param[out] stack_used @n if platform used stack buffer, set stack_used to 1, otherwise set it to 0.
+ * @return
+   @verbatim
+     = 0: on success.
+     = -1: error occur.
+   @endverbatim
+ * @see None.
+ * @note None.
+ */
+int HAL_ThreadCreate(
+            void **thread_handle,
+            void *(*work_routine)(void *),
+            void *arg,
+            hal_os_thread_param_t *hal_os_thread_param,
+            int *stack_used);
 
 
 /**

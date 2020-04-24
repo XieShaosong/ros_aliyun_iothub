@@ -12,5 +12,8 @@ int main(int argc, char** argv)
     spinner.start();
     ros::waitForShutdown();
 
+    IOT_MQTT_Destroy(&iot.pclient);
+    IOT_Linkkit_Close(iot.g_user_iot_ctx.master_devid);
+    ROS_INFO("close");
     return 0;
 }

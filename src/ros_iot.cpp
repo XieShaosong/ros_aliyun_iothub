@@ -3,6 +3,8 @@ using namespace ros_iot;
 
 string AliIot::cmd = "";
 AliIot::iot_ctx_t AliIot::g_user_iot_ctx;
+int AliIot::upload_end = 0;
+char AliIot::g_upload_id[50] = {0};
 
 AliIot::AliIot()
 {
@@ -353,7 +355,7 @@ int AliIot::iot_service_request_event_handler(const int devid, const char *servi
             cJSON_Delete(root);
             return -1;
         }
-
+        
         cmd = command->valuestring;
 
         *response_len = strlen(response_fmt) + 10 + strlen(result);
@@ -410,6 +412,72 @@ int AliIot::iot_sdk_state_dump(int ev, const char *msg)
     return 0;
 }
 
+void AliIot::iot_upload_file_result(const char *file_path, int result, void *user_data)
+{
+    upload_end++;
+    ROS_INFO("=========== file_path = %s, result = %d, finish num = %d ===========", file_path, result, upload_end);
+}
+
+void AliIot::iot_upload_id_received_handle(const char *file_path, const char *upload_id, void *user_data)
+{
+    ROS_INFO("=========== file_path = %s, upload_id = %s ===========", file_path, upload_id);
+
+    if (upload_id != NULL)
+    {
+        memset(g_upload_id, 0, sizeof(g_upload_id));
+        strncpy(g_upload_id, upload_id, sizeof(g_upload_id) - 1); 
+    }
+}
+
+int AliIot::iot_uploadfile()
+{
+    int ret;
+    http2_upload_conn_info_t conn_info;
+    http2_upload_result_cb_t result_cb;
+    void *handle;
+    int goal_num = 0;
+    int i;
+
+    memset(&conn_info, 0, sizeof(http2_upload_conn_info_t));
+    conn_info.product_key = product_key;
+    conn_info.device_name = device_name;
+    conn_info.device_secret = device_secret;
+    conn_info.url = HTTP2_ONLINE_SERVER_URL;
+    conn_info.port = HTTP2_ONLINE_SERVER_PORT;
+
+    memset(&result_cb, 0, sizeof(http2_upload_result_cb_t));
+    // result_cb.upload_completed_cb = iot_upload_file_result;
+    // result_cb.upload_id_received_cb = iot_upload_id_received_handle;
+
+    handle = IOT_HTTP2_UploadFile_Connect(&conn_info, NULL);
+    if (handle == NULL)
+    {
+        return -1;
+    }
+
+    struct passwd *pw = getpwuid(getuid());
+    char *log = strcat(pw->pw_dir, "/iot_logs/test.bag");
+
+    http2_upload_params_t fs_params;
+    fs_params.file_path = log;
+    fs_params.upload_len = 1024 * 1024 * 100;
+    fs_params.opt_bit_map = UPLOAD_FILE_OPT_BIT_OVERWRITE;
+
+    ret = IOT_HTTP2_UploadFile_Request(handle, &fs_params, &result_cb, NULL);
+    if (ret == 0)
+    {
+        goal_num++;
+    }
+    while(upload_end != goal_num)
+    {
+        usleep(0.2 * 1000000);
+    }
+
+    ret = IOT_HTTP2_UploadFile_Disconnect(handle);
+    ROS_INFO("close connect %d\n", ret);
+    return 0;
+}
+
 void AliIot::intervalTopicCallback(const ros::TimerEvent &)
 {
     iot_publish(pclient);
@@ -432,7 +500,10 @@ void AliIot::intervalCallback(const ros::TimerEvent &)
 
     if (cmd != "")
     {
-        handleCommand(cmd.c_str());
+        if (cmd == "upload")
+            iot_uploadfile();
+        else
+            handleCommand(cmd.c_str());
         cmd = "";
     }
 }

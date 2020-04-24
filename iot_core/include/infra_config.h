@@ -17,9 +17,12 @@
 #define INFRA_LOG_MUTE_ERR
 #define INFRA_LOG_MUTE_CRT
 #define INFRA_TIMER
+#define INFRA_JSON_PARSER
 #define INFRA_CJSON
+#define INFRA_SHA1
 #define INFRA_SHA256
 #define INFRA_REPORT
+#define INFRA_HTTPC
 #define INFRA_COMPAT
 #define DEV_SIGN
 #define MQTT_COMM_ENABLED
@@ -29,5 +32,6 @@
 #define LOG_REPORT_TO_CLOUD
 #define DEVICE_MODEL_ENABLED
 #define SUPPORT_TLS
+#define HTTP2_COMM_ENABLED
 
 #endif

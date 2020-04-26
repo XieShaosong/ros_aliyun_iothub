@@ -17,7 +17,6 @@
 #define INFRA_LOG_MUTE_ERR
 #define INFRA_LOG_MUTE_CRT
 #define INFRA_TIMER
-#define INFRA_JSON_PARSER
 #define INFRA_CJSON
 #define INFRA_SHA1
 #define INFRA_SHA256
@@ -33,5 +32,6 @@
 #define DEVICE_MODEL_ENABLED
 #define SUPPORT_TLS
 #define HTTP2_COMM_ENABLED
+#define FS_ENABLED
 
 #endif

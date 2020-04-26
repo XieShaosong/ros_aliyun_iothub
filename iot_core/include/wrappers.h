@@ -15,6 +15,69 @@ extern "C" {
 #define HAL_Printf printf
 /**
  *
+ * 函数 HAL_Fclose() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_Fclose() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_Fclose(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_Fclose, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_FS_Linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+int HAL_Fclose(void *stream);
+
+
+/**
+ *
+ * 函数 HAL_Fopen() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_Fopen() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_Fopen(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_Fopen, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_FS_Linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+void *HAL_Fopen(const char *path, const char *mode);
+
+
+/**
+ *
+ * 函数 HAL_Fread() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_Fread() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_Fread(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_Fread, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_FS_Linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+uint32_t HAL_Fread(void *buff, uint32_t size, uint32_t count, void *stream);
+
+
+/**
+ *
  * 函数 HAL_Free() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
  * ---
  * Interface of HAL_Free() requires to be implemented by user of SDK, according to target device platform
@@ -40,6 +103,48 @@ extern "C" {
  * @note None.
  */
 void HAL_Free(void *ptr);
+
+
+/**
+ *
+ * 函数 HAL_Fseek() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_Fseek() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_Fseek(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_Fseek, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_FS_Linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+int HAL_Fseek(void *stream, long offset, int framewhere);
+
+
+/**
+ *
+ * 函数 HAL_Ftell() 需要SDK的使用者针对SDK将运行的硬件平台填充实现, 供SDK调用
+ * ---
+ * Interface of HAL_Ftell() requires to be implemented by user of SDK, according to target device platform
+ *
+ * 如果需要参考如何实现函数 HAL_Ftell(), 可以查阅SDK移植到 Ubuntu Linux 上时的示例代码
+ * ---
+ * If you need guidance about how to implement HAL_Ftell, you can check its reference implementation for Ubuntu platform
+ *
+ * https://code.aliyun.com/linkkit/c-sdk/blob/v3.0.1/wrappers/HAL_FS_Linux.c
+ *
+ *
+ * 注意! HAL_XXX() 系列的函数虽然有阿里提供的对应参考实现, 但不建议您不做任何修改/检视的应用于您的商用设备!
+ * 
+ * 注意! 参考示例实现仅用于解释各个 HAL_XXX() 系列函数的语义!
+ * 
+ */
+long HAL_Ftell(void *stream);
 
 
 /**

@@ -71,7 +71,7 @@ public:
     static int iot_identity_response_handle(const char *payload);
     int32_t iot_post_event_warn(uint32_t devid, const char *value);
     int32_t iot_post_event_error(uint32_t devid, const char *value);
-    int32_t iot_post_property_status(uint32_t devid, uint32_t value);
+    int32_t iot_post_property_status(uint32_t devid);
     int32_t iot_parse_property(const char *request, int request_len);
     static int iot_connected_event_handler(void);
     static int iot_disconnected_event_handler(void);
@@ -90,8 +90,8 @@ public:
     
     static int upload_end;
     static char g_upload_id[50];
-    void iot_upload_file_result(const char *file_path, int result, void *user_data);
-    void iot_upload_id_received_handle(const char *file_path, const char *upload_id, void *user_data);
+    static void iot_upload_file_result(const char *file_path, int result, void *user_data);
+    static void iot_upload_id_received_handle(const char *file_path, const char *upload_id, void *user_data);
     int iot_uploadfile();
 };
 }

@@ -153,7 +153,7 @@ bool AliIot::iot_publish(void *handle)
     const char *fmt= "/%s/%s/user/update";
     char *topic = NULL;
     int topic_len = 0;
-    string payload = "{\"status\":\"" + demo_status.status + "\",\"target_value\":\"" + to_string(demo_status.target_value) +"\",\"current_value\":\"" + to_string(demo_status.current_value) +"\"}";
+    string payload = "{\"status\":\"" + demo_status.status + "\",\"target_value\":" + to_string(demo_status.target_value) +",\"current_value\":" + to_string(demo_status.current_value) +"}";
 
     topic_len = strlen(fmt)+strlen(product_key)+strlen(device_name)+1;
     topic = HAL_Malloc(topic_len);
@@ -253,18 +253,14 @@ int32_t AliIot::iot_post_event_error(uint32_t devid, const char *value)
     return res;
 }
 
-int32_t AliIot::iot_post_property_status(uint32_t devid, uint32_t value)
+int32_t AliIot::iot_post_property_status(uint32_t devid)
 {
     int32_t res = STATE_USER_INPUT_BASE;
-    char property_payload[64] = {0};
 
-    res = HAL_Snprintf(property_payload, sizeof(property_payload), "{\"status\": %d}", value);
-    if (res < 0) {
-        return STATE_SYS_DEPEND_SNPRINTF;
-    }
+    string payload = "{\"status\":{\"status\":\"" + demo_status.status + "\",\"target_value\":" + to_string(demo_status.target_value) +",\"current_value\":" + to_string(demo_status.current_value) +"}}";
 
     res = IOT_Linkkit_Report(devid, ITM_MSG_POST_PROPERTY,
-                            (uint8_t *)property_payload, strlen(property_payload));
+                            payload.c_str(), strlen(payload.c_str()));
     return res;
 }
 
@@ -446,8 +442,8 @@ int AliIot::iot_uploadfile()
     conn_info.port = HTTP2_ONLINE_SERVER_PORT;
 
     memset(&result_cb, 0, sizeof(http2_upload_result_cb_t));
-    // result_cb.upload_completed_cb = iot_upload_file_result;
-    // result_cb.upload_id_received_cb = iot_upload_id_received_handle;
+    result_cb.upload_completed_cb = iot_upload_file_result;
+    result_cb.upload_id_received_cb = iot_upload_id_received_handle;
 
     handle = IOT_HTTP2_UploadFile_Connect(&conn_info, NULL);
     if (handle == NULL)
@@ -473,6 +469,8 @@ int AliIot::iot_uploadfile()
         usleep(0.2 * 1000000);
     }
 
+    upload_end = 0;
+    g_upload_id[50] = {0};
     ret = IOT_HTTP2_UploadFile_Disconnect(handle);
     ROS_INFO("close connect %d\n", ret);
     return 0;
@@ -485,12 +483,9 @@ void AliIot::intervalTopicCallback(const ros::TimerEvent &)
 
 void AliIot::intervalLinkkitCallback(const ros::TimerEvent &)
 {
-    uint32_t state = 1;
-    if (strcmp(demo_status.status.c_str(), "running") == 0)
-        state = 0;
-    uint32_t ret = iot_post_property_status(g_user_iot_ctx.master_devid, state);
-    //uint32_t ret = iot_post_event_warn(g_user_iot_ctx.master_devid, "\"test\"");
-    //uint32_t ret = iot_post_event_error(g_user_iot_ctx.master_devid, "\"test\"");
+    uint32_t ret = iot_post_property_status(g_user_iot_ctx.master_devid);
+    // iot_post_event_warn(g_user_iot_ctx.master_devid, "\"test\"");
+    // iot_post_event_error(g_user_iot_ctx.master_devid, "\"test\"");
 }
 
 void AliIot::intervalCallback(const ros::TimerEvent &)
